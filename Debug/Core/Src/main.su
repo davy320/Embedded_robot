@@ -2,7 +2,7 @@
 ../Core/Src/main.c:155:6:SystemClock_Config	112	static
 ../Core/Src/main.c:200:13:MX_I2C1_Init	8	static
 ../Core/Src/main.c:248:13:MX_SPI1_Init	8	static
-../Core/Src/main.c:288:13:MX_TIM3_Init	48	static
-../Core/Src/main.c:337:13:MX_USART1_UART_Init	8	static
-../Core/Src/main.c:372:13:MX_GPIO_Init	48	static
-../Core/Src/main.c:432:6:Error_Handler	8	static,ignoring_inline_asm
+../Core/Src/main.c:288:13:MX_TIM3_Init	64	static
+../Core/Src/main.c:347:13:MX_USART1_UART_Init	8	static
+../Core/Src/main.c:382:13:MX_GPIO_Init	48	static
+../Core/Src/main.c:442:6:Error_Handler	8	static,ignoring_inline_asm
