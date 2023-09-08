@@ -1,6 +1,7 @@
 #include "motor_controller.h"
-
+#include "main.h"
 #include "stm32f0xx_hal.h"
+#include "main.h"
 
 #define MOTOR_PORT      GPIOA
 
@@ -11,6 +12,7 @@
 #define INPUT_B_1_PIN   GPIO_PIN_4
 #define INPUT_B_2_PIN   GPIO_PIN_5
 
+extern TIM_HandleTypeDef htim3; /* PWM pin EN_B - generated automatically by STM32CubeIDE */
 
 MotorStatus motorStatus = {
     .dirA = MOTOR_STOPPED,
@@ -20,11 +22,13 @@ MotorStatus motorStatus = {
 };
 
 void initMotor() {
-    HAL_GPIO_WritePin(MOTOR_PORT, EN_A_PIN | INPUT_A_1_PIN | INPUT_A_2_PIN | EN_B_PIN | INPUT_B_1_PIN | INPUT_B_2_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(MOTOR_PORT, EN_A_PIN | INPUT_A_1_PIN | INPUT_A_2_PIN | INPUT_B_1_PIN | INPUT_B_2_PIN, GPIO_PIN_RESET);
     motorStatus.dirA = MOTOR_STOPPED;
     motorStatus.dirB = MOTOR_STOPPED;
     motorStatus.speedA = 0;
     motorStatus.speedB = 0;
+
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 }
 
 void setMotorDirectionA(MotorDirection dir) {
@@ -78,11 +82,7 @@ void setMotorSpeedA(uint16_t speed) {
 }
 
 void setMotorSpeedB(uint16_t speed) {
-    if (speed == 0) {
-        HAL_GPIO_WritePin(MOTOR_PORT, EN_B_PIN, GPIO_PIN_RESET);
-    } else {
-        HAL_GPIO_WritePin(MOTOR_PORT, EN_B_PIN, GPIO_PIN_SET);
-    }
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, speed);
 
     motorStatus.speedB = speed;
 }

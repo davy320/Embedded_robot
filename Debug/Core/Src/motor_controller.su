@@ -1,7 +1,7 @@
-../Core/Src/motor_controller.c:22:6:initMotor	8	static
-../Core/Src/motor_controller.c:30:6:setMotorDirectionA	16	static
-../Core/Src/motor_controller.c:50:6:setMotorDirectionB	16	static
-../Core/Src/motor_controller.c:70:6:setMotorSpeedA	16	static
-../Core/Src/motor_controller.c:80:6:setMotorSpeedB	16	static
+../Core/Src/motor_controller.c:24:6:initMotor	8	static
+../Core/Src/motor_controller.c:34:6:setMotorDirectionA	16	static
+../Core/Src/motor_controller.c:54:6:setMotorDirectionB	16	static
+../Core/Src/motor_controller.c:74:6:setMotorSpeedA	16	static
+../Core/Src/motor_controller.c:84:6:setMotorSpeedB	16	static
 ../Core/Src/motor_controller.c:91:6:stopMotors	8	static
 ../Core/Src/motor_controller.c:98:13:getMotorStatus	16	static
