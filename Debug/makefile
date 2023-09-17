@@ -60,8 +60,8 @@ all: main-build
 main-build: smoke_f0.elf secondary-outputs
 
 # Tool invocations
-smoke_f0.elf smoke_f0.map: $(OBJS) $(USER_OBJS) /Users/davy/STM32CubeIDE/workspace_1.13.1/smoke_f0/STM32F042K6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "smoke_f0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"/Users/davy/STM32CubeIDE/workspace_1.13.1/smoke_f0/STM32F042K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="smoke_f0.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+smoke_f0.elf smoke_f0.map: $(OBJS) $(USER_OBJS) C:\Users\davy\repos\Embedded_robot\STM32F042K6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "smoke_f0.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\davy\repos\Embedded_robot\STM32F042K6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="smoke_f0.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

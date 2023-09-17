@@ -1,9 +1,0 @@
-../Core/Src/bluetooth.c:9:6:Bluetooth_Init	136	static
-../Core/Src/bluetooth.c:14:6:Bluetooth_MakeDiscoverable	32	static
-../Core/Src/bluetooth.c:21:6:Bluetooth_Send	24	static
-../Core/Src/bluetooth.c:26:6:Bluetooth_Receive	24	static
-../Core/Src/bluetooth.c:31:6:Bluetooth_Connect	152	static
-../Core/Src/bluetooth.c:37:6:Bluetooth_SendATCommand	80	static
-../Core/Src/bluetooth.c:44:6:Bluetooth_SetAsMaster	144	static
-../Core/Src/bluetooth.c:49:6:Bluetooth_ConnectToDevice	208	static
-../Core/Src/bluetooth.c:56:16:handleBluetoothCommands	248	static

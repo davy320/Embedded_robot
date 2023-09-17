@@ -5,77 +5,107 @@
 #include "bluetooth.h"
 #include "driver.h"
 
+// Define the UART handle
+extern UART_HandleTypeDef huart2;
 
-void Bluetooth_Init(UART_HandleTypeDef huart1)
-{
-	Bluetooth_MakeDiscoverable(huart1);
-}
+// Initialization function
+void Bluetooth_Init(void) {
+    // UART initialization parameters
 
-void Bluetooth_MakeDiscoverable(UART_HandleTypeDef huart1)
-{
-    char command[] = "AT+DISC?\r\n";
-    HAL_UART_Transmit(&huart1, (uint8_t *)command, strlen(command), HAL_MAX_DELAY);
-}
-
-
-void Bluetooth_Send(char* data, UART_HandleTypeDef huart1)
-{
-    HAL_UART_Transmit(&huart1, (uint8_t*)data, strlen(data), HAL_MAX_DELAY);
-}
-
-void Bluetooth_Receive(char* buffer, uint16_t size, UART_HandleTypeDef huart1)
-{
-    HAL_UART_Receive(&huart1, (uint8_t*)buffer, size, HAL_MAX_DELAY);
-}
-
-void Bluetooth_Connect(UART_HandleTypeDef huart1)
-{
-    char connectCmd[] = "AT+CON";
-    Bluetooth_Send(connectCmd, huart1);
-}
-
-void Bluetooth_SendATCommand(char* command, UART_HandleTypeDef huart1)
-{
-    char cmd[50];
-    sprintf(cmd, "AT+%s\r\n", command);
-    HAL_UART_Transmit(&huart1, (uint8_t*)cmd, strlen(cmd), HAL_MAX_DELAY);
-}
-
-void Bluetooth_SetAsMaster(UART_HandleTypeDef huart1)
-{
-    Bluetooth_SendATCommand("ROLE1", huart1);
-}
-
-void Bluetooth_ConnectToDevice(char* address, UART_HandleTypeDef huart1)
-{
-    char connectCmd[50];
-    sprintf(connectCmd, "CON%s", address);
-    Bluetooth_SendATCommand(connectCmd, huart1);
-}
-
-ControllerMode handleBluetoothCommands(UART_HandleTypeDef huart1) {
-    char buffer[100];
-    Bluetooth_Receive(buffer, sizeof(buffer), huart1);
-
-    switch(buffer[0]) {
-        case 'F':
-            moveForward(100);
-            break;
-        case 'B':
-            moveBackward(100);
-            break;
-        case 'L':
-            moveForwardLeft(100);
-            break;
-        case 'R':
-            moveForwardRight(100);
-            break;
-        case 'M':
-        	break;
-        case 'N':
-        	return FREE_ROAM_MODE;
-        default:
-        	break;
+    if (HAL_UART_Init(&huart2) != HAL_OK) {
+        // Initialization Error
+        Bluetooth_Error_Handler();
+    } else {
+    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+    	HAL_Delay(2000);
+    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
     }
-    return BLUETOOTH_MODE;
 }
+
+HAL_StatusTypeDef Bluetooth_SendATCommand(char* command, char* response, uint16_t responseSize) {
+    HAL_StatusTypeDef status;
+
+    // Send the command
+    status = HAL_UART_Transmit(&huart2, (uint8_t*)command, strlen(command), HAL_MAX_DELAY1);  // 1000ms timeout
+    if(status != HAL_OK) {
+	    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
+        return status;
+    }
+
+    HAL_Delay(100);
+
+    status = HAL_UART_Receive(&huart2, (uint8_t*)response, responseSize, HAL_MAX_DELAY1);  // 1000ms timeout
+    // Receive the response with a timeout
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
+    return status;
+}
+
+// Test the connection
+HAL_StatusTypeDef Bluetooth_TestConnection(void) {
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+
+    char response[5];
+    return Bluetooth_SendATCommand("AT\r\n", response, 4);
+}
+
+// Set the name of the HM-10 module
+HAL_StatusTypeDef Bluetooth_SetName(char* name) {
+	char command[20];
+	char response[30];
+
+	snprintf(command, sizeof(command), "AT+NAME%s\r\n", name);
+	return Bluetooth_SendATCommand(command, response, sizeof(response));
+}
+
+// Get the name of the HM-10 module
+HAL_StatusTypeDef Bluetooth_GetName(char* name, uint16_t size) {
+    return Bluetooth_SendATCommand("AT+NAME?\r\n", name, size);
+}
+
+// Set the passcode of the HM-10 module
+HAL_StatusTypeDef Bluetooth_SetPasscode(char* passcode) {
+    char command[20];
+    char response[30];
+
+    snprintf(command, sizeof(command), "AT+PASS%s\r\n", passcode);
+    return Bluetooth_SendATCommand(command, response, sizeof(response));
+}
+
+// Get the passcode of the HM-10 module
+HAL_StatusTypeDef Bluetooth_GetPasscode(char* passcode, uint16_t size) {
+    return Bluetooth_SendATCommand("AT+PASS?\r\n", passcode, size);
+}
+
+// Get the role of the HM-10 module (should be 0 for slave)
+HAL_StatusTypeDef Bluetooth_GetRole(char* role, uint16_t size) {
+    return Bluetooth_SendATCommand("AT+ROLE?\r\n", role, size);
+}
+
+// Get the MAC address of the HM-10 module
+HAL_StatusTypeDef Bluetooth_GetAddress(char* address, uint16_t size) {
+    return Bluetooth_SendATCommand("AT+ADDR?\r\n", address, size);
+}
+
+// Check work mode
+HAL_StatusTypeDef Bluetooth_CheckWorkMode(char* mode, uint16_t size) {
+    return Bluetooth_SendATCommand("AT+IMME?\r\n", mode, size);
+}
+
+// Set work mode
+HAL_StatusTypeDef Bluetooth_SetWorkMode(char mode) {
+    char command[15];
+    char response[25];
+
+    snprintf(command, sizeof(command), "AT+IMME%c\r\n", mode);
+    return Bluetooth_SendATCommand(command, response, sizeof(response));
+}
+
+void Bluetooth_Error_Handler(void) {
+	  // Toggle the RED LED # error
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+	while (1) {
+	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+	  HAL_Delay(200);
+	}
+}
+

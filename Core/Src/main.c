@@ -110,39 +110,36 @@ int main(void)
 
 
   initMotor(); /* Initiate DC motors to IDLE or stopped */
+  Bluetooth_Init();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+
+  uint8_t data;
+  HAL_StatusTypeDef status;
   while (1)
   {
 
-      // Motor B forward at full speed
-      setMotorDirectionB(MOTOR_FORWARD);
-      setMotorSpeedB(65535);  // Full Speed
-      HAL_Delay(5000);  // Wait for 5 seconds
+	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
+      status = HAL_UART_Receive(&huart2, &data, 1, HAL_MAX_DELAY1);
 
-      // Motor B backward at full speed
-      setMotorDirectionB(MOTOR_BACKWARD);
-      setMotorSpeedB(65535);  // Full Speed
-      HAL_Delay(5000);  // Wait for 5 seconds
-
-      // Motor B forward at quarter speed
-      setMotorDirectionB(MOTOR_FORWARD);
-      setMotorSpeedB(16384);  // Quarter Speed
-      HAL_Delay(5000);  // Wait for 5 seconds
-
-      // Motor B backward at quarter speed
-      setMotorDirectionB(MOTOR_BACKWARD);
-      setMotorSpeedB(16384);  // Quarter Speed
-      HAL_Delay(5000);  // Wait for 5 seconds
-
+	 if (status == HAL_OK) {
+		// Data received successfully, toggle the LED
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);  // Turn on the LED
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);  // Replace LD2_PIN with the pin connected to your LED
+		HAL_Delay(1000);
+	 } else {
+		// Error in data reception, turn on the LED
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);  // Replace LD2_PIN with the pin connected to your LED
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);  // Turn on the LED
+	 }
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
 
   }
   /* USER CODE END 3 */
