@@ -1,0 +1,5 @@
+../Core/Src/accel.c:8:6:LSM303CTR_Init	128	static
+../Core/Src/accel.c:20:6:LSM303CTR_ReadAccel	144	static
+../Core/Src/accel.c:30:6:LSM303CTR_WriteReg	24	static
+../Core/Src/accel.c:37:9:LSM303CTR_ReadReg	32	static
+../Core/Src/accel.c:49:6:LSM303CTR_ReadRegs	24	static

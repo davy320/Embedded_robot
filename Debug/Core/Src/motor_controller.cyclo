@@ -1,0 +1,7 @@
+../Core/Src/motor_controller.c:24:6:initMotor	1
+../Core/Src/motor_controller.c:34:6:setMotorDirectionA	3
+../Core/Src/motor_controller.c:54:6:setMotorDirectionB	3
+../Core/Src/motor_controller.c:74:6:setMotorSpeedA	2
+../Core/Src/motor_controller.c:84:6:setMotorSpeedB	1
+../Core/Src/motor_controller.c:91:6:stopMotors	1
+../Core/Src/motor_controller.c:98:13:getMotorStatus	1

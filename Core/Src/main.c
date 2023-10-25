@@ -50,10 +50,9 @@ I2C_HandleTypeDef hi2c1;
 
 SPI_HandleTypeDef hspi1;
 
-UART_HandleTypeDef huart1;
+TIM_HandleTypeDef htim3;
 
-// Global variable to store the current mode
-ControllerMode currentMode = FREE_ROAM_MODE;
+UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 
@@ -65,6 +64,7 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -105,49 +105,41 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI1_Init();
   MX_USART1_UART_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
 
   initMotor(); /* Initiate DC motors to IDLE or stopped */
-  LSM303CTR_Init(hspi1);
-  Bluetooth_Init(huart1);
+  Bluetooth_Init();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+
+  uint8_t data;
+  HAL_StatusTypeDef status;
   while (1)
   {
 
-	  if (currentMode == FREE_ROAM_MODE) {
+	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
+      status = HAL_UART_Receive(&huart2, &data, 1, HAL_MAX_DELAY1);
 
-	      // Read accelerometer data
-	      int16_t accel_x, accel_y, accel_z;
-	      LSM303CTR_ReadAccel(&accel_x, &accel_y, &accel_z, hspi1);
+	 if (status == HAL_OK) {
+		// Data received successfully, toggle the LED
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);  // Turn on the LED
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);  // Replace LD2_PIN with the pin connected to your LED
+		HAL_Delay(1000);
+	 } else {
+		// Error in data reception, turn on the LED
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);  // Replace LD2_PIN with the pin connected to your LED
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);  // Turn on the LED
+	 }
 
-	      // Read distance from 1 Lidar sensor
-	      uint16_t distance1;
-	      readVL53L1XDistance(VL53L1X_SENSOR1_ADDRESS, &distance1, hi2c1);
-	  		  if (distance1 < 50)
-	  		  {
-	  			  moveBackward(100);
-	  		  }
-	  		  else
-	  		  {
-	  			  // If no obstacles are detected, move forward
-	  			  moveForward(100);
-	  		  }
+    /* USER CODE END WHILE */
 
-
-	  	      // Delay for a while before the next iteration
-	  	      HAL_Delay(100);
-	        }
-
-		/* USER CODE END WHILE */
-
-		/* USER CODE BEGIN 3 */
-      currentMode = handleBluetoothCommands(huart1);
-
+    /* USER CODE BEGIN 3 */
 
   }
   /* USER CODE END 3 */
@@ -286,6 +278,65 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -338,15 +389,15 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, EN_A_Pin|INPUT_A_1_Pin|CS_XL_Pin|INPUT_A_2_Pin
-                          |INPUT_B_1_Pin|INPUT_B_2_Pin|EN_B_Pin|CS_MAG_Pin, GPIO_PIN_RESET);
+                          |INPUT_B_1_Pin|INPUT_B_2_Pin|CS_MAG_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(XSHUT_GPIO_Port, XSHUT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : EN_A_Pin INPUT_A_1_Pin CS_XL_Pin INPUT_A_2_Pin
-                           INPUT_B_1_Pin INPUT_B_2_Pin EN_B_Pin CS_MAG_Pin */
+                           INPUT_B_1_Pin INPUT_B_2_Pin CS_MAG_Pin */
   GPIO_InitStruct.Pin = EN_A_Pin|INPUT_A_1_Pin|CS_XL_Pin|INPUT_A_2_Pin
-                          |INPUT_B_1_Pin|INPUT_B_2_Pin|EN_B_Pin|CS_MAG_Pin;
+                          |INPUT_B_1_Pin|INPUT_B_2_Pin|CS_MAG_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
